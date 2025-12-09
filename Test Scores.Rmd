@@ -1,0 +1,90 @@
+---
+title: "Student Test Scores"
+author: "Nourhan Ghanima"
+date: "2025-12-03"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+Exploratory data analysis on test score data. The results should be interpreted with caution as there are only 50 entries in the data set, meaning no generalizations can be made. Exploring the data is useful nontheless. 
+
+
+```{r message = FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+test_data <- read.csv("/Users/nourhanghanima/Downloads/student_performance_analysis.csv")
+```
+We start with a summary of the data. 
+```{r message = FALSE, warning = FALSE}
+summary(test_data)
+```
+The students have an average score of 
+```{r message=FALSE, warning=FALSE}
+average_score <- mean(test_data$test_score)
+average_score
+```
+
+The students in general have on average studied for
+```{r message=FALSE, warning=FALSE}
+average_hours <- mean(test_data$hours_studied)
+average_hours
+```
+hours.  
+```{r message = FALSE, warning = FALSE}
+test_data$gender_dummy = ifelse(test_data$gender == "Female", 1, 0) 
+```
+
+It is also interesting to display the average score divided by gender. 
+
+```{r message=FALSE, warning=FALSE}
+
+test_data <- test_data %>%
+  group_by(gender) %>%                       # group by gender
+  mutate(average_by_gender = mean(test_score)) %>%  # create new column
+  ungroup()
+ggplot(test_data, aes(x = gender, y = test_score)) +
+  geom_bar(stat = "summary", fun = "mean", color = "blue", fill = "white") +
+  ylab("Average Score") +
+  ggtitle("Average by Gender") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 5)) +
+  theme(panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) 
+ 
+
+```
+As the bar chart shows, females only have a slightly higher average score than males. 
+
+Testing the effect of hours of study on test scores:
+```{r message = FALSE, warning = FALSE}
+score_hours <- lm(test_score ~ hours_studied, data = test_data)
+summary(score_hours) 
+```
+Results show a positive relationship, but the results are not statistically significant. 
+
+
+
+```{r}
+  ggplot(test_data, aes(x = hours_studied, y = test_score))+
+  geom_smooth(method = "lm", se= FALSE ) +
+  labs(title = "Hours Studied and Exam Scores", x = "Hours Studied", y = "Test Score") +
+  theme_minimal() 
+ 
+```
+
+Testing the significance of all the factors combined:
+```{r message = FALSE, warning = FALSE}
+score_factors <- lm(test_score ~ hours_studied + gender + attendance_percent + assignments_completed, data = test_data)
+summary(score_factors)
+```
+There are positive relationships with all the factors, but none of the relationships are statistically significant. 
+
+
